@@ -25,6 +25,7 @@ repositories {
     maven { url "https://repo.bg-software.com/repository/api/" }
     maven { url "https://nexus.savagelabs.net/repository/maven-releases/" }
     maven { url "https://maven.enginehub.org/repo/" }
+    maven { url "https://repo.md-5.net/content/repositories/public/" }
 
     flatDir {
         dirs "libs"
@@ -40,12 +41,12 @@ dependencies {
     implementation name: 'OriLib-1.2.0'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
 
-    // API Dependencies
+    // Plugin Dependencies
     compileOnly 'com.sk89q.worldguard:worldguard-bukkit:7.0.4'
     compileOnly 'com.github.TownyAdvanced:Towny:0.97.0.0'
     compileOnly 'com.iridium:IridiumSkyblock:3.0.4'
     compileOnly 'com.bgsoftware:SuperiorSkyblockAPI:latest'
-    // haha if you think im adding songurda support
+    compileOnly name: 'CoreProtect-19.5'
 
 }
 

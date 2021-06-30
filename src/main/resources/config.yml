@@ -8,3 +8,16 @@ mysql:
   username: Username
   password: Password
   ssl: true
+
+tiers:
+  1:
+    displayName: 'Tier #1'
+    slots: 100
+    item:
+      material: 'CHEST'
+      name: '&aTier #1 Chest'
+      lore:
+        - '&7Place this on the floor to'
+        - '&7create a tier 1 upgradeable chest!'
+        - ' '
+        - '&7This chest has &ax100 &7slots!'

@@ -8,5 +8,5 @@ class Chest(val id: Int, var tier: Tier, val location: Location) {
     var items = mutableListOf<ItemStack>()
 
     val hasItems: Boolean
-        get() = items.size == 0
+        get() = items.size > 0
 }

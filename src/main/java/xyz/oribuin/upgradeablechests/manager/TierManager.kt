@@ -15,22 +15,21 @@ class TierManager(private val plugin: UpgradeableChests) : Manager(plugin) {
 
         // Cache all the plugin's tiers.
         section.getKeys(false).forEach { s ->
-            val id = s.toIntOrNull() ?: return@forEach
-            val tier = Tier(id)
+            val tier = Tier(s.toIntOrNull() ?: defaultTier.id)
             tier.slots = section.getInt("$s.slots")
 
             if (section.getString("$s.displayName") != null) {
-                tier.displayName = section.getString("$s.displayName") ?: return@forEach
+                tier.displayName = section.getString("$s.displayName") ?: defaultTier.displayName
             }
 
             tier.displayItem = Item.Builder(Material.matchMaterial(section.getString("$s.item.material") ?: "CHEST") ?: Material.CHEST)
                 .setName(colorify(section.getString("$s.item.name")))
                 .setLore(section.getStringList("$s.item.lore").map { colorify(it) }.toList())
-                .setNBT("upgradeablechest.tier", id)
+                .setNBT("upgradeablechests.tier", tier.id.toString())
                 .glow()
                 .create()
 
-            tiers[s.toInt()] = tier
+            tiers[tier.id] = tier
         }
 
     }
@@ -52,7 +51,7 @@ class TierManager(private val plugin: UpgradeableChests) : Manager(plugin) {
     private val defaultTier: Tier
         get() {
             val tier = Tier(1)
-            tier.displayName = "Tier 1"
+            tier.displayName = "Tier #1"
             return tier
         }
 

@@ -37,7 +37,7 @@ object PluginUtils {
     }
 
     /**
-     * Get an [ItemStack]'s NBT Key Value
+     * Get an [ItemStack]'s NBT String Key Value
      *
      * @param item The [ItemStack]
      * @param key The String key
@@ -46,6 +46,18 @@ object PluginUtils {
     fun getNBTString(item: ItemStack, key: String): String {
         return NBTEditor.getString(item, key)
     }
+
+    /**
+     * Get an [ItemStack]'s NBT Integer Key Value
+     *
+     * @param item The [ItemStack]
+     * @param key The String key
+     * @return The value of the key.
+     */
+    fun getNBTInt(item: ItemStack, key: String): Int {
+        return NBTEditor.getInt(item, key)
+    }
+
 
     /**
      * Checks if an [ItemStack] has a nbt value.

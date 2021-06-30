@@ -16,7 +16,6 @@ import xyz.oribuin.upgradeablechests.obj.Chest
 import xyz.oribuin.upgradeablechests.obj.Tier
 import xyz.oribuin.upgradeablechests.util.PluginUtils.handleDeserialization
 import xyz.oribuin.upgradeablechests.util.PluginUtils.handleSerialization
-import java.sql.Connection
 import java.util.concurrent.CompletableFuture
 import java.util.function.Consumer
 
@@ -59,7 +58,9 @@ class DataManager(private val plugin: UpgradeableChests) : Manager(plugin) {
         }
 
         async {
-            connector?.connect { connection: Connection? -> _1_CreateTables(tablePrefix).migrate(connector, connection) }
+            connector?.connect { connection ->
+                _1_CreateTables(tablePrefix).migrate(connector, connection)
+            }
             cacheChests()
         }
 
@@ -127,24 +128,23 @@ class DataManager(private val plugin: UpgradeableChests) : Manager(plugin) {
      * @param location The location of the [Chest]
      * @return a nullable [Chest]
      */
-    fun createChest(tier: Tier, location: Location): Chest? {
+    fun createChest(id: Int, tier: Tier, location: Location): Chest {
 
-        var chest: Chest? = null
-        async {
+        val chest = Chest(id, tier, location)
+        this.cachedChests[id] = chest
+        async { _ ->
 
             connector?.connect { connection ->
-                val query = "INSERT INTO " + tablePrefix + "chests (tier, x, y, z, world) VALUES (?, ?, ?, ?, ?)"
+                val query = "REPLACE INTO " + tablePrefix + "chests (chestID, tier, x, y, z, world) VALUES (?, ?, ?, ?, ?, ?)"
 
-                connection.prepareStatement(query).use { statement ->
-                    statement.setInt(1, tier.id)
-                    statement.setDouble(2, location.x)
-                    statement.setDouble(3, location.y)
-                    statement.setDouble(4, location.z)
-                    statement.setString(5, location.world!!.name)
-                    val result = statement.executeQuery()
-                    if (result.next()) {
-                        chest = Chest(result.getInt("chestID"), tier, location)
-                    }
+                connection.prepareStatement(query).use {
+                    it.setInt(1, getNextChestID(cachedChests.map { chest -> chest.value.id }.toList()))
+                    it.setInt(2, tier.id)
+                    it.setDouble(3, location.x)
+                    it.setDouble(4, location.y)
+                    it.setDouble(5, location.z)
+                    it.setString(6, location.world?.name)
+                    it.executeUpdate()
                 }
 
             }
@@ -181,7 +181,7 @@ class DataManager(private val plugin: UpgradeableChests) : Manager(plugin) {
                 }
 
                 // Save the chest in the chests table
-                val addChest = "INSERT INTO " + tablePrefix + "chests (tier, x, y, z, world) VALUES (?, ?, ?, ?, ?)"
+                val addChest = "REPLACE INTO " + tablePrefix + "chests (tier, x, y, z, world) VALUES (?, ?, ?, ?, ?)"
                 connection.prepareStatement(addChest).use { statement ->
                     statement.setInt(1, chest.tier.id)
                     statement.setDouble(2, chest.location.x)
@@ -228,6 +228,28 @@ class DataManager(private val plugin: UpgradeableChests) : Manager(plugin) {
             }
         }
 
+    }
+
+    /**
+     * @author Esophose
+     *
+     * Gets the smallest positive integer greater than 0 from a list
+     *
+     * @param existingIds The list containing non-available ids
+     * @return The smallest positive integer not in the given list
+     */
+    fun getNextChestID(existingIds: Collection<Int>): Int {
+        val copy = existingIds.sorted().toMutableList()
+        copy.removeIf { it <= 0 }
+
+        var current = 1
+        for (i in copy) {
+            if (i == current) {
+                current++
+            } else break
+        }
+
+        return current
     }
 
     override fun disable() {
