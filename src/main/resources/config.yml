@@ -1,0 +1,10 @@
+# Enable if you want to save everything in MySQL
+mysql:
+  table-prefix: upgradeablechests_
+  enabled: false
+  host: localhost
+  port: 3306
+  dbname: DBName
+  username: Username
+  password: Password
+  ssl: true
