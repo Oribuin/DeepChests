@@ -10,6 +10,7 @@ import xyz.oribuin.upgradeablechests.listener.BlockListeners
 import xyz.oribuin.upgradeablechests.manager.DataManager
 import xyz.oribuin.upgradeablechests.manager.MessageManager
 import xyz.oribuin.upgradeablechests.manager.TierManager
+import xyz.oribuin.upgradeablechests.task.ParticleTask
 
 class UpgradeableChests : OriPlugin() {
 
@@ -32,6 +33,9 @@ class UpgradeableChests : OriPlugin() {
 
         // Register Commands
         CmdChest(this).register(null, null)
+
+        // Register Tasks
+        ParticleTask(this)
     }
 
     override fun disablePlugin() {}

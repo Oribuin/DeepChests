@@ -40,7 +40,7 @@ class BlockListeners(private val plugin: UpgradeableChests) : Listener {
         )
             return
 
-        dataManager.createChest(0, tier, loc)
+        dataManager.createChest(tier, loc)
 
     }
 
@@ -48,6 +48,9 @@ class BlockListeners(private val plugin: UpgradeableChests) : Listener {
     fun BlockBreakEvent.onBreak() {
 
         val loc = this.block.location
+
+        val chest = dataManager.getChest(this.block.location)
+        if (chest.isEmpty) return
 
         // Check Protection Plugins
         if (!WGHook.canBuild(player, loc)
@@ -57,9 +60,9 @@ class BlockListeners(private val plugin: UpgradeableChests) : Listener {
         )
             return
 
-        val chest = dataManager.getChest(this.block.location) ?: return
+
         this.isCancelled = true
-        BreakChestGUI(plugin, player, chest)
+        BreakChestGUI(plugin, player, chest.get())
 
     }
 

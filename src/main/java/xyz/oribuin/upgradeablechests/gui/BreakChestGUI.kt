@@ -34,7 +34,6 @@ class BreakChestGUI(private val plugin: UpgradeableChests, private val player: P
             .setLore(colorify("&7Click to destroy the chest."))
             .create()) {
 
-            println(chest.items.toList().toString())
             if (chest.hasItems) {
                 msg.send(it.whoClicked, "chest-isnt-empty")
                 return@setItem

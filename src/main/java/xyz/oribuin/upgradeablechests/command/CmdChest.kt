@@ -18,6 +18,12 @@ import xyz.oribuin.upgradeablechests.manager.TierManager
 class CmdChest(private val plugin: UpgradeableChests) : Command(plugin) {
 
     override fun runFunction(sender: CommandSender, label: String, args: Array<String>) {
+
+        if (args[0].equals("refresh", true)) {
+            this.plugin.reload()
+            return
+        }
+
         if (sender is Player) {
             this.plugin.getManager(TierManager::class.java).tiers
                 .forEach { (_, u) -> sender.inventory.addItem(u.displayItem) }
