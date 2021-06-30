@@ -13,6 +13,7 @@ import xyz.oribuin.orilibrary.util.FileUtils
 import xyz.oribuin.upgradeablechests.UpgradeableChests
 import xyz.oribuin.upgradeablechests.migration._1_CreateTables
 import xyz.oribuin.upgradeablechests.obj.Chest
+import xyz.oribuin.upgradeablechests.obj.Tier
 import xyz.oribuin.upgradeablechests.util.PluginUtils.handleDeserialization
 import xyz.oribuin.upgradeablechests.util.PluginUtils.handleSerialization
 import java.sql.Connection
@@ -25,7 +26,7 @@ class DataManager(private val plugin: UpgradeableChests) : Manager(plugin) {
     private var connector: DatabaseConnector? = null
     private val cachedChests = mutableMapOf<Int, Chest>()
 
-    lateinit var tablePrefix: String
+    private lateinit var tablePrefix: String
 
     override fun enable() {
         val config = this.plugin.config
@@ -66,8 +67,9 @@ class DataManager(private val plugin: UpgradeableChests) : Manager(plugin) {
 
     /**
      * Cache all the plugin's upgradeable chests
+     * @since 1.0
      */
-    fun cacheChests() {
+    private fun cacheChests() {
 
         // this also feels like a mess
         val chests = mutableListOf<Chest>()
@@ -89,7 +91,7 @@ class DataManager(private val plugin: UpgradeableChests) : Manager(plugin) {
                             resultSet.getDouble("z")
                         )
 
-                        val chest = Chest(id, tier, loc)
+                        val chest = Chest(id, plugin.getManager(TierManager::class.java).getTier(tier), loc)
                         val newQuery = "SELECT item FROM " + tablePrefix + "items WHERE chestID = ?"
 
                         // like holy fuck what is going on here, two??? while loops, thats asking for the server to have a mental breakdown
@@ -117,7 +119,15 @@ class DataManager(private val plugin: UpgradeableChests) : Manager(plugin) {
 
     }
 
-    fun createChest(tier: Int, location: Location): Chest? {
+    /**
+     * Create a new [Chest] object and save it into the database.
+     * @since 1.0
+     *
+     * @param tier The tier of the [Chest]
+     * @param location The location of the [Chest]
+     * @return a nullable [Chest]
+     */
+    fun createChest(tier: Tier, location: Location): Chest? {
 
         var chest: Chest? = null
         async {
@@ -126,7 +136,7 @@ class DataManager(private val plugin: UpgradeableChests) : Manager(plugin) {
                 val query = "INSERT INTO " + tablePrefix + "chests (tier, x, y, z, world) VALUES (?, ?, ?, ?, ?)"
 
                 connection.prepareStatement(query).use { statement ->
-                    statement.setInt(1, tier)
+                    statement.setInt(1, tier.id)
                     statement.setDouble(2, location.x)
                     statement.setDouble(3, location.y)
                     statement.setDouble(4, location.z)
@@ -144,9 +154,20 @@ class DataManager(private val plugin: UpgradeableChests) : Manager(plugin) {
     }
 
     /**
-     * Save the chest into the database and cache it..
+     * Get a nullable [Chest] from a [Location].
+     * @since 1.0
      *
-     * @param chest The Chest
+     * @param loc The [Location]
+     */
+    fun getChest(loc: Location): Chest? {
+        return this.cachedChests.filter { it.value.location == loc }[0]
+    }
+
+    /**
+     * Save the [Chest] into the database and cache it.
+     * @since 1.0
+     *
+     * @param chest The [Chest]
      */
     fun saveChest(chest: Chest) {
         cachedChests[chest.id] = chest
@@ -162,7 +183,7 @@ class DataManager(private val plugin: UpgradeableChests) : Manager(plugin) {
                 // Save the chest in the chests table
                 val addChest = "INSERT INTO " + tablePrefix + "chests (tier, x, y, z, world) VALUES (?, ?, ?, ?, ?)"
                 connection.prepareStatement(addChest).use { statement ->
-                    statement.setInt(1, chest.tier)
+                    statement.setInt(1, chest.tier.id)
                     statement.setDouble(2, chest.location.x)
                     statement.setDouble(3, chest.location.y)
                     statement.setDouble(4, chest.location.z)
@@ -180,6 +201,33 @@ class DataManager(private val plugin: UpgradeableChests) : Manager(plugin) {
 
             }
         }
+    }
+
+    /**
+     * Delete a chest from the database and removeit from the cache
+     * @since 1.0
+     *
+     * @id The id of the [Chest]
+     */
+    fun deleteChest(id: Int) {
+        cachedChests.remove(id)
+
+        async {
+
+            this.connector?.connect { connection ->
+                connection.prepareStatement("DELETE FROM ${tablePrefix}items WHERE chestID = ?").use {
+                    it.setInt(1, id)
+                    it.execute()
+                }
+
+                connection.prepareStatement("DELETE FROM ${tablePrefix}chests WHERE chestID = ?").use {
+                    it.setInt(1, id)
+                    it.execute()
+                }
+
+            }
+        }
+
     }
 
     override fun disable() {

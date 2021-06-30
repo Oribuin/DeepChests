@@ -36,6 +36,13 @@ dependencies {
     implementation name: 'ori-gui-1.0'
     implementation name: 'OriLib-1.2.0'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+
+    // API Dependencies
+    compileOnly 'com.sk89q.worldguard:worldguard-bukkit:7.0.4'
+    compileOnly 'com.github.TownyAdvanced:Towny:0.97.0.0'
+    compileOnly 'com.iridiumskyblock:IridiumSkyblock:3.0.5'
+    compileOnly 'com.bgsoftware:SuperiorSkyblock:latest'
+
 }
 
 shadowJar {
