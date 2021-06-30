@@ -12,6 +12,10 @@ import xyz.oribuin.upgradeablechests.util.PluginUtils
 
 class BlockListeners(private val plugin: UpgradeableChests) : Listener {
 
+    private val dataManager = this.plugin.getManager(DataManager::class.java)
+    private val tierManager = this.plugin.getManager(TierManager::class.java)
+
+
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     fun BlockPlaceEvent.onPlace() {
 
@@ -19,15 +23,19 @@ class BlockListeners(private val plugin: UpgradeableChests) : Listener {
         if (!PluginUtils.hasValue(this.itemInHand, "upgradeablechests.tier")) return
 
         val tierID = PluginUtils.getNBTString(this.itemInHand, "upgradeablechests.tier").toIntOrNull() ?: return
-        val tier = plugin.getManager(TierManager::class.java).getTier(tierID)
+        val tier = tierManager.getTier(tierID)
 
-        plugin.getManager(DataManager::class.java).createChest(tier, this.block.location)
+        dataManager.createChest(tier, this.block.location)
 
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     fun BlockBreakEvent.onBreak() {
-        TODO("Add block break system.")
+
+        val chest = dataManager.getChest(this.block.location) ?: return
+        this.isCancelled = true
+
+
     }
 
 }
