@@ -12,9 +12,12 @@ import xyz.oribuin.upgradeablechests.UpgradeableChests
 import xyz.oribuin.upgradeablechests.migration._1_CreateTables
 import xyz.oribuin.upgradeablechests.obj.Chest
 import xyz.oribuin.upgradeablechests.obj.Tier
+import xyz.oribuin.upgradeablechests.util.PluginUtils.handleDeserialization
+import xyz.oribuin.upgradeablechests.util.PluginUtils.handleSerialization
 import java.util.*
 import java.util.concurrent.CompletableFuture
 import java.util.function.Consumer
+import java.util.stream.Collectors
 
 
 class DataManager(private val plugin: UpgradeableChests) : Manager(plugin) {
@@ -90,6 +93,17 @@ class DataManager(private val plugin: UpgradeableChests) : Manager(plugin) {
                         )
 
                         val chest = Chest(id, plugin.getManager(TierManager::class.java).getTier(tier), loc)
+
+                        // holy shit what kind of arrow code is going on here
+                        connection.prepareStatement("SELECT item FROM ${tablePrefix}items WHERE chestID = ?").use {
+                            it.setInt(1, id)
+                            val result = it.executeQuery()
+                            while (result.next()) {
+                                val item = handleDeserialization(result.getString(1)) ?: return@connect
+                                chest.items.add(item)
+                            }
+                        }
+
                         chests.add(chest)
                     }
                 }
@@ -113,28 +127,69 @@ class DataManager(private val plugin: UpgradeableChests) : Manager(plugin) {
 
         val nextId = getNextChestID(cachedChests.map { chest -> chest.value.id }.toList())
         val chest = Chest(nextId, tier, location)
+
+        async { saveChest(chest) }
+
+        return chest
+    }
+
+    /**
+     * Save and update a chest into the database.
+     *
+     * @param chest The [Chest]
+     */
+    fun saveChest(chest: Chest) {
+
         this.cachedChests[chest.id] = chest
 
+        connector?.connect { connection ->
+            val query = "REPLACE INTO " + tablePrefix + "chests (chestID, tier, x, y, z, world) VALUES (?, ?, ?, ?, ?, ?)"
+
+            val location = chest.location
+            connection.prepareStatement(query).use {
+                it.setInt(1, chest.id)
+                it.setInt(2, chest.tier.id)
+                it.setDouble(3, location.blockX.toDouble())
+                it.setDouble(4, location.blockY.toDouble())
+                it.setDouble(5, location.blockZ.toDouble())
+                it.setString(6, location.world?.name)
+                it.executeUpdate()
+            }
+        }
+
+    }
+
+    fun saveChestItems(chest: Chest) {
+
+        println(chest.items.map { it.type })
+        cachedChests[chest.id] = chest
+
         async { _ ->
-
             connector?.connect { connection ->
-                val query = "REPLACE INTO " + tablePrefix + "chests (chestID, tier, x, y, z, world) VALUES (?, ?, ?, ?, ?, ?)"
+//                val deleteQuery = "DELETE FROM ${tablePrefix}items WHERE chestID = ?"
+//                connection.prepareStatement(deleteQuery).use {
+//                    it.setInt(1, chest.id)
+//                    it.executeUpdate()
+//                }
 
-                connection.prepareStatement(query).use {
-                    it.setInt(1, chest.id)
-                    it.setInt(2, tier.id)
-                    it.setDouble(3, location.x)
-                    it.setDouble(4, location.y)
-                    it.setDouble(5, location.z)
-                    it.setString(6, location.world?.name)
-                    it.executeUpdate()
+                connection.createStatement().use {
+                    chest.items.map { item -> handleSerialization(item) }
+                        .forEach { item ->
+                            it.addBatch("INSERT INTO ${tablePrefix}items (chestID, item) VALUES (${chest.id}, \"$item\")")
+                        }
+
+                    it.executeBatch()
                 }
+
 
             }
         }
 
-        return chest
     }
+
+    /**
+     * Save a chest into the con
+     */
 
     /**
      * Get a nullable [Chest] from a [Location].
