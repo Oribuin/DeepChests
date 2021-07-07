@@ -38,8 +38,6 @@ class BlockListeners(private val plugin: UpgradeableChests) : Listener {
             return
 
         val chestBlock = block.state as Chest
-        if (!chestManager.isUpgradeableChest(chestBlock))
-            return
 
         val chest = chestManager.getChestFromBlock(chestBlock)
 
@@ -63,9 +61,6 @@ class BlockListeners(private val plugin: UpgradeableChests) : Listener {
 
         val chestBlock = block.state as Chest
 
-        if (!chestManager.isUpgradeableChest(chestBlock))
-            return
-
         val chest = chestManager.getChestFromItem(this.itemInHand) ?: return
 
         // Check Protection Plugins
@@ -85,9 +80,6 @@ class BlockListeners(private val plugin: UpgradeableChests) : Listener {
         }
 
         val blockChest = this.block.state as Chest
-
-        if (!chestManager.isUpgradeableChest(blockChest))
-            return
 
         val chest = chestManager.getChestFromBlock(blockChest)
 

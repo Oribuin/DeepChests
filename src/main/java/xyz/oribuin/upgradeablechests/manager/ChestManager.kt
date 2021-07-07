@@ -43,7 +43,7 @@ class ChestManager(private val plugin: UpgradeableChests) : Manager(plugin) {
     }
 
     fun isUpgradeableChest(block: org.bukkit.block.Chest): Boolean {
-        return block.persistentDataContainer.has(NamespacedKey(plugin, "tier"), PersistentDataType.INTEGER)
+        return block.persistentDataContainer.keys.contains(NamespacedKey(plugin, "tier"))
     }
 
     fun getChestFromItem(item: ItemStack): Chest? {

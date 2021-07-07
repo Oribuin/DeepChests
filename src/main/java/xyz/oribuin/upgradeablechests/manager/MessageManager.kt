@@ -9,6 +9,7 @@ import xyz.oribuin.orilibrary.util.HexUtils
 import xyz.oribuin.orilibrary.util.StringPlaceholders
 import xyz.oribuin.upgradeablechests.UpgradeableChests
 import xyz.oribuin.upgradeablechests.hook.PAPI
+import java.io.File
 
 class MessageManager(private val plugin: UpgradeableChests) : Manager(plugin) {
 
@@ -19,10 +20,12 @@ class MessageManager(private val plugin: UpgradeableChests) : Manager(plugin) {
 
         // Set any values that dont exist
         for (msg in Messages.values()) {
-            val key = msg.name.lowercase().replace("_", " ")
+            val key = msg.name.lowercase().replace("_", "-")
 
             if (config.get(key) == null) config.set(key, msg.value)
         }
+
+        config.save(File(this.plugin.dataFolder, "messages.yml"))
     }
 
     /**
@@ -50,7 +53,9 @@ class MessageManager(private val plugin: UpgradeableChests) : Manager(plugin) {
             return
         }
 
-        receiver.sendMessage(HexUtils.colorify(PAPI.apply(receiver, placeholders.apply(msg))))
+        val prefix = this.config.getString("prefix") ?: Messages.PREFIX.value
+
+        receiver.sendMessage(HexUtils.colorify(PAPI.apply(receiver, prefix + placeholders.apply(msg))))
     }
 
     /**
@@ -83,7 +88,7 @@ class MessageManager(private val plugin: UpgradeableChests) : Manager(plugin) {
     override fun disable() {}
 
     enum class Messages(val value: String) {
-        PREFIX("#ff2115UpgradeableChests &8| &f"),
+        PREFIX("#ff2115&lUpgradeableChests &8| &f"),
         DESTROYED_CHEST("You have destroyed a chest!"),
         CHEST_ISNT_EMPTY("You cannot destroy a chest that isnt empty!"),
         RELOAD("You have reloaded UpgradeableChests!"),
