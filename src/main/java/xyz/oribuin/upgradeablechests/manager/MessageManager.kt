@@ -84,6 +84,7 @@ class MessageManager(private val plugin: UpgradeableChests) : Manager(plugin) {
 
     enum class Messages(val value: String) {
         PREFIX("#ff2115UpgradeableChests &8| &f"),
+        DESTROYED_CHEST("You have destroyed a chest!"),
         CHEST_ISNT_EMPTY("You cannot destroy a chest that isnt empty!"),
         RELOAD("You have reloaded UpgradeableChests!"),
 

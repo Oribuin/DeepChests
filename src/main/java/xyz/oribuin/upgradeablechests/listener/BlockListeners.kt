@@ -1,7 +1,9 @@
 package xyz.oribuin.upgradeablechests.listener
 
 import org.bukkit.Bukkit
+import org.bukkit.Location
 import org.bukkit.block.Chest
+import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
@@ -17,14 +19,11 @@ import xyz.oribuin.upgradeablechests.hook.IridiumHook
 import xyz.oribuin.upgradeablechests.hook.SuperiorSBHook
 import xyz.oribuin.upgradeablechests.hook.TownyHook
 import xyz.oribuin.upgradeablechests.hook.WGHook
-import xyz.oribuin.upgradeablechests.manager.ItemManager
-import xyz.oribuin.upgradeablechests.manager.TierManager
-import xyz.oribuin.upgradeablechests.util.PluginUtils
+import xyz.oribuin.upgradeablechests.manager.ChestManager
 
 class BlockListeners(private val plugin: UpgradeableChests) : Listener {
 
-    private val tierManager = this.plugin.getManager(TierManager::class.java)
-    private val itemManager = this.plugin.getManager(ItemManager::class.java)
+    private val chestManager = this.plugin.getManager(ChestManager::class.java)
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     fun PlayerInteractEvent.onInteract() {
@@ -33,63 +32,81 @@ class BlockListeners(private val plugin: UpgradeableChests) : Listener {
         val block = this.clickedBlock ?: return
 
         if (this.hand != EquipmentSlot.HAND) return
-        if (this.action == Action.LEFT_CLICK_BLOCK) return
+        if (this.action != Action.RIGHT_CLICK_BLOCK) return
 
-        if (block.state !is Chest) return
-        val chestBlock = block.state as Chest
-
-        val chest = itemManager.getChestFromBlock(chestBlock) ?: return
-
-        // Check Protection Plugins
-        if (!WGHook.canBuild(player, block.location)
-            || !IridiumHook.canBuild(player, block.location)
-            || !SuperiorSBHook.canBuild(player, block.location)
-            || !TownyHook.canBuild(player, block.location)
-        )
+        if (block.state !is Chest)
             return
 
+        val chestBlock = block.state as Chest
+        if (!chestManager.isUpgradeableChest(chestBlock))
+            return
+
+        val chest = chestManager.getChestFromBlock(chestBlock)
+
+        // Check Protection Plugins
+        if (cantBuild(player, block.location))
+            return
+
+        chestBlock.open()
         this.isCancelled = true
-        ChestGUI(plugin, chest, player)
+        ChestGUI(plugin, chest, player, chestBlock)
     }
 
 
-//    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-//    fun BlockPlaceEvent.onPlace() {
-//        // Check if the item has the NBT Value
-//        val loc = this.block.location
-//
-//
-//        // Check Protection Plugins
-//        if (!WGHook.canBuild(player, loc)
-//            || !IridiumHook.canBuild(player, loc)
-//            || !SuperiorSBHook.canBuild(player, loc)
-//            || !TownyHook.canBuild(player, loc)
-//        )
-//            return
-//
-//        val chest = itemManager.getChestFromBlock(this.block.state as Chest) ?: return
-//
-//    }
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    fun BlockPlaceEvent.onPlace() {
+        // Check if the item has the NBT Value
+        val loc = this.block.location
+
+        if (block.state !is Chest)
+            return
+
+        val chestBlock = block.state as Chest
+
+        if (!chestManager.isUpgradeableChest(chestBlock))
+            return
+
+        val chest = chestManager.getChestFromItem(this.itemInHand) ?: return
+
+        // Check Protection Plugins
+        if (cantBuild(player, loc))
+            return
+
+        chest.location = this.block.location
+        chestManager.setPDC(chest, chestBlock.persistentDataContainer)
+    }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     fun BlockBreakEvent.onBreak() {
-
         val loc = this.block.location
 
-        val chest = itemManager.getChestFromBlock(this.block.state as Chest) ?: return
+        if (this.block.state !is Chest) {
+            return
+        }
 
-        // Check Protection Plugins
-        if (!WGHook.canBuild(player, loc)
-            || !IridiumHook.canBuild(player, loc)
-            || !SuperiorSBHook.canBuild(player, loc)
-            || !TownyHook.canBuild(player, loc)
-        )
+        val blockChest = this.block.state as Chest
+
+        if (!chestManager.isUpgradeableChest(blockChest))
             return
 
+        val chest = chestManager.getChestFromBlock(blockChest)
+
+        // Check Protection Plugins
+        if (cantBuild(player, loc))
+            return
+
+        if (player.isSneaking) {
+            chestManager.createItemFromBlock(blockChest)
+            return
+        }
 
         this.isCancelled = true
         BreakChestGUI(plugin, player, chest)
 
+    }
+
+    private fun cantBuild(player: Player, loc: Location): Boolean {
+        return !WGHook.canBuild(player, loc) || !IridiumHook.canBuild(player, loc) || !SuperiorSBHook.canBuild(player, loc) || !TownyHook.canBuild(player, loc)
     }
 
     init {

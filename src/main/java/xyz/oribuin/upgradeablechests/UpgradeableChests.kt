@@ -4,7 +4,7 @@ import xyz.oribuin.orilibrary.OriPlugin
 import xyz.oribuin.upgradeablechests.command.CmdChest
 import xyz.oribuin.upgradeablechests.hook.PAPI
 import xyz.oribuin.upgradeablechests.listener.BlockListeners
-import xyz.oribuin.upgradeablechests.manager.ItemManager
+import xyz.oribuin.upgradeablechests.manager.ChestManager
 import xyz.oribuin.upgradeablechests.manager.MessageManager
 import xyz.oribuin.upgradeablechests.manager.TierManager
 
@@ -14,7 +14,7 @@ class UpgradeableChests : OriPlugin() {
 
         // Load plugin managers asynchronously
         server.scheduler.runTaskAsynchronously(this, Runnable {
-            this.getManager(ItemManager::class.java)
+            this.getManager(ChestManager::class.java)
             this.getManager(TierManager::class.java)
             this.getManager(MessageManager::class.java)
         })
