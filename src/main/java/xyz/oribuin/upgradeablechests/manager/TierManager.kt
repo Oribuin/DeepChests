@@ -24,8 +24,6 @@ class TierManager(private val plugin: UpgradeableChests) : Manager(plugin) {
 
             tier.displayItem = Item.Builder(Material.matchMaterial(section.getString("$s.item.material") ?: "CHEST") ?: Material.CHEST)
                 .setName(colorify(section.getString("$s.item.name")))
-                .setLore(section.getStringList("$s.item.lore").map { colorify(it) }.toList())
-                .setNBT("upgradeablechests.tier", tier.id.toString())
                 .glow()
                 .create()
 

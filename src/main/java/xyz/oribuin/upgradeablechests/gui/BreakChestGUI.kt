@@ -9,7 +9,7 @@ import xyz.oribuin.gui.Gui
 import xyz.oribuin.gui.Item
 import xyz.oribuin.orilibrary.util.HexUtils.colorify
 import xyz.oribuin.upgradeablechests.UpgradeableChests
-import xyz.oribuin.upgradeablechests.manager.DataManager
+import xyz.oribuin.upgradeablechests.manager.ItemManager
 import xyz.oribuin.upgradeablechests.manager.MessageManager
 import xyz.oribuin.upgradeablechests.obj.Chest
 
@@ -46,10 +46,11 @@ class BreakChestGUI(private val plugin: UpgradeableChests, private val player: P
                 CoreProtect.getInstance().api.logRemoval(player.uniqueId.toString(), block.location, block.type, block.blockData)
             }
 
-            block.type = Material.AIR
-            block.location.world?.dropItemNaturally(chest.location, chest.tier.displayItem)
+            val item = this.plugin.getManager(ItemManager::class.java).createItemFromBlock(block.state as org.bukkit.block.Chest)
 
-            this.plugin.getManager(DataManager::class.java).deleteChest(chest.id)
+            block.world.dropItemNaturally(block.location, item)
+            block.type = Material.AIR
+
             it.whoClicked.closeInventory()
 
         }

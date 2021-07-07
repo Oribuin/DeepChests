@@ -1,13 +1,11 @@
 package xyz.oribuin.upgradeablechests.gui
 
-import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.event.Event
 import org.bukkit.event.inventory.InventoryAction
 import org.bukkit.inventory.ItemStack
 import xyz.oribuin.gui.PaginatedGui
 import xyz.oribuin.upgradeablechests.UpgradeableChests
-import xyz.oribuin.upgradeablechests.manager.DataManager
 import xyz.oribuin.upgradeablechests.obj.Chest
 
 class ChestGUI(private val plugin: UpgradeableChests, private val chest: Chest, player: Player) {
@@ -26,13 +24,7 @@ class ChestGUI(private val plugin: UpgradeableChests, private val chest: Chest, 
         items.addAll(chest.items)
 
         gui.setCloseAction {
-
-            pageSlots.forEach { slot ->
-                this.
-            }
-
-            chest.items = items
-            this.plugin.getManager(DataManager::class.java).saveChestItems(chest)
+            // todo
         }
 
         gui.setDefaultClickFunction {
@@ -44,8 +36,6 @@ class ChestGUI(private val plugin: UpgradeableChests, private val chest: Chest, 
                 (it.whoClicked as Player).updateInventory()
                 return@setDefaultClickFunction
             }
-
-            it.inventory.
 
         }
 
