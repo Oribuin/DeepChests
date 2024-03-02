@@ -1,0 +1,29 @@
+# en_US translation by Oribuin
+# Plugin Command Prefix
+prefix: "<g:#00B4DB:#0083B0>&lDeepChests &8| &f"
+
+# Generic Command Messages
+no-permission: "You do not have permission to do that!"
+only-player: "This command can only be executed by a player!"
+unknown-command: "Unknown command, use #00B4DB/%cmd%&f help for more info"
+
+# Help Command Messages
+command-help-title: "Available Commands:"
+command-help-description: "Displays the help menu"
+command-help-list-description: " &8- &#00B4DB/%cmd% %subcmd% %args% &7- &f%desc%"
+command-help-list-description-no-args: " &8- &#00B4DB/%cmd% %subcmd% &7- &f%desc%"
+
+# Reload Command Messages
+command-reload-description: "Reloads the plugin."
+command-reload-reloaded: "Configuration and locale files were reloaded"
+
+# Base Command Messages
+command-base-description: "This does nothing"
+
+# Give Command
+command-give-description: "Give a player a "
+command-give-success: "You have given %target% x%amount% deepchest(s) with %slots% slots."
+
+# Argument Handler Messages
+argument-handler-player: 'Please provide a valid player name.'
+argument-handler-integer: 'Please provide a valid number.'

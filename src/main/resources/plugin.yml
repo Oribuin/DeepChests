@@ -1,9 +1,6 @@
-name: UpgradeableChests
-main: xyz.oribuin.upgradeablechests.UpgradeableChests
-version: '1.0'
+name: DeepChests
+main: xyz.oribuin.deepchests.DeepChestPlugin
+version: @version@
+api-version: 1.16
 author: Oribuin
-api-version: "1.16"
-description: Store thousands of items in a single upgradeable chest
-website: https://oribuin.xyz/
-softdepend:
-  - PlaceholderAPI
+description: Store endless amounts of items in a virtual chest.
